@@ -47,7 +47,7 @@ runs:
       shell: bash
       run: env | sort
 
-    - name: "Build the Docker image"
+    - name: "Build and push the Docker image"
       shell: bash
       run: |
         echo
@@ -57,9 +57,15 @@ runs:
         COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
           docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
-          --build-arg GITHUB_SHA=${GITHUB_SHA}
+          --build-arg GITHUB_SHA=${GITHUB_SHA} \
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
           
+        echo
+        echo "Pushing the Docker image ..."
+        echo
+
+        docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+
     - name: Inspect an image
       shell: bash
       run: |
