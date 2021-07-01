@@ -82,5 +82,5 @@ runs:
         echo "Inspecting the image ..."
         echo
 
-        docker images | head -n3
-        docker image inspect --format='{{json .Config}}' ${{ inputs.image_name }}
+        docker images
+        docker image inspect ${{ inputs.image_name }}
