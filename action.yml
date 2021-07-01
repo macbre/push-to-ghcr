@@ -14,7 +14,7 @@ runs:
     - name: Log in to the Container registry
       shell: bash
       run: |
-        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Set commit tag
       shell: bash
