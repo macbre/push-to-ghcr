@@ -23,7 +23,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-
     # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
     - name: Log in to the Container registry
       shell: bash
@@ -53,21 +52,22 @@ runs:
         echo
         echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
         echo
-      
+
         COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
           docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
-          
+
         echo
         echo "Pushing the Docker image ..."
         echo
 
         docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+        
+        echo
+        echo "Inspecting the image ..."
+        echo
 
-    - name: Inspect an image
-      shell: bash
-      run: |
         docker images | head -n3
         docker inspect --format='{{json .Config.Labels}}' ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq
