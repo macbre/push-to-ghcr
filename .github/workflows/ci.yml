@@ -22,5 +22,5 @@ jobs:
         env:
           IMAGE: ghcr.io/${{ github.repository }}
         run: |
-          docker pull docker ${IMAGE}
+          docker pull ${IMAGE}
           docker image inspect ${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
