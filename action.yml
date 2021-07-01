@@ -81,5 +81,5 @@ runs:
         echo "Inspecting the image ..."
         echo
 
-        docker images | head -n2
+        docker images
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
