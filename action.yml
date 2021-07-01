@@ -49,6 +49,9 @@ runs:
     - name: "Build and push the Docker image"
       shell: bash
       run: |
+        # expand commands
+        set -x
+
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
         echo
