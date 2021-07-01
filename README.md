@@ -28,6 +28,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      # https://github.com/marketplace/actions/push-to-ghcr
       - name: Build and publish a Docker image for ${{ github.repository }}
         uses: macbre/push-to-ghcr@master
         with:
