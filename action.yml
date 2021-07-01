@@ -11,6 +11,15 @@ inputs:
      description: "Your secrets.GITHUB_TOKEN"
      required: true
 
+  image_name:
+    description: "Image name, e.g. my-user-name/my-repo"
+    required: true
+
+  repository:
+    description: "Docker repository to push an image to, defaults to ghcr.io"
+    required: true
+    default: "ghcr.io"
+
 runs:
   using: "composite"
   steps:
@@ -23,7 +32,7 @@ runs:
       run: |
         echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-    - name: Set commit tag
+    - name: Set commit tag and image name
       shell: bash
       run: |
         if [ "${{ github.event_name }}" = "release" ]; then
@@ -38,17 +47,21 @@ runs:
       shell: bash
       run: env | sort
 
-    - name: "Build the Docker image (tag: ${{ env.COMMIT_TAG }}, event: ${{ github.event_name }})"
+    - name: "Build the Docker image"
       shell: bash
       run: |
+        echo
+        echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
+        echo
+      
         COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
           docker build . \
-          --cache-from ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+          --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg GITHUB_SHA=${GITHUB_SHA}
-          --tag ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}
+          --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
           
     - name: Inspect an image
       shell: bash
       run: |
         docker images | head -n3
-        docker inspect --format='{{json .Config.Labels}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }} | jq
+        docker inspect --format='{{json .Config.Labels}}' ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq
