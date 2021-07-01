@@ -1,0 +1,51 @@
+name: "push-to-ghcr"
+author: "@macbre"
+description: "This action simplifies pushes of Docker images ot ghcr.io repository"
+# https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions#branding
+branding:
+  icon: "arrow-up-circle"
+  color: "blue"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@master
+
+    - name: Log in to the Container registry
+      uses: docker/login-action@v1
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set commit tag that will be used to tag a specific version
+      if: ${{ github.event_name == 'release' }}
+      shell: bash
+      run: |
+        export COMMIT_TAG=${GITHUB_REF:10}
+        # export COMMIT_TAG=v2.3.0 # debug
+        echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
+    - name: Set commit tag to "latest"
+      if: ${{ github.event_name == 'push' }}
+      shell: bash
+      run: |
+        echo "COMMIT_TAG=latest" >> $GITHUB_ENV
+    - name: Show env variables
+      run: env | sort
+
+    # https://github.com/marketplace/actions/build-and-push-docker-images
+    - name: "Build and push Docker image (tag: ${{ env.COMMIT_TAG }}, event: ${{ github.event_name }})"
+      uses: docker/build-push-action@v2
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}
+        build-args: |
+          GITHUB_SHA=${GITHUB_SHA}
+        cache-from: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+    - name: Inspect an image
+      shell: bash
+      run: |
+        docker images | head -n3
+        docker inspect --format='{{json .Config.Labels}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }} | jq
