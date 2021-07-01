@@ -51,6 +51,8 @@ runs:
     - name: "Build and push the Docker image"
       shell: bash
       run: |
+        export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
         echo
         echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
         echo
@@ -61,7 +63,7 @@ runs:
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
           \
-          --label org.label-schema.build-date=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+          --label org.label-schema.build-date=$BUILD_DATE \
           --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
           --label org.label-schema.vcs-ref=$GITHUB_SHA
 
