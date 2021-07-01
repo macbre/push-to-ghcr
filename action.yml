@@ -68,7 +68,7 @@ runs:
           --label org.label-schema.vcs-ref=${GITHUB_SHA} \
           \
           --label org.opencontainers.image.created=${BUILD_DATE} \
-          --label org.opencontainers.image.source=https://github.com/${{ inputs.image_name }}.git
+          --label org.opencontainers.image.source=https://github.com/${{ inputs.image_name }}.git \
           --label org.opencontainers.image.revision=${GITHUB_SHA}
 
         echo
@@ -81,5 +81,5 @@ runs:
         echo "Inspecting the image ..."
         echo
 
-        docker images
+        docker images | head -n2
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
