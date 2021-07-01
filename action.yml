@@ -83,4 +83,4 @@ runs:
         echo
 
         docker images | head -n3
-        docker image inspect --format='{{json .Config}}' ${{ inputs.image_name }} | jq .
+        docker image inspect --format='{{json .Config}}' ${{ inputs.image_name }}
