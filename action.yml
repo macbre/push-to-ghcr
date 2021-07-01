@@ -66,7 +66,6 @@ runs:
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
           \
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
-          --tag ${{ inputs.image_name }} \
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
           --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
@@ -83,4 +82,4 @@ runs:
         echo
 
         docker images
-        docker image inspect ${{ inputs.image_name }}
+        docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
