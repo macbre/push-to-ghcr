@@ -3,5 +3,5 @@ FROM alpine:latest
 
 ARG GITHUB_SHA
 
-RUN echo $GITHUB_SHA
+RUN echo "GITHUB_SHA: ${GITHUB_SHA}"
 RUN env | sort
