@@ -30,7 +30,7 @@ jobs:
 
       # https://github.com/marketplace/actions/push-to-ghcr
       - name: Build and publish a Docker image for ${{ github.repository }}
-        uses: macbre/push-to-ghcr@master
+        uses: macbre/push-to-ghcr@v2
         with:
           image_name: ${{ github.repository }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -40,13 +40,16 @@ This action assumes that your `Dockerfile` is in the root directory of your repo
 
 ## Labels and build args
 
-The image that is pushed is labelled with:
+The image that is pushed is labelled with `org.label-schema` [and `org.opencontainers` schema](https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys). For instance:
 
 ```json
 {
-  "org.label-schema.build-date": "2021-07-01T12:52:03Z",
-  "org.label-schema.vcs-ref": "26b095f37cdf56a632aa2235345d4174b26e1d66",
-  "org.label-schema.vcs-url": "https://github.com/macbre/push-to-ghcr.git"
+  "org.label-schema.build-date": "2021-07-01T14:28:46Z",
+  "org.label-schema.vcs-ref": "6f51d3d7bb7d46959a26594cb2b807573e34c546",
+  "org.label-schema.vcs-url": "https://github.com/macbre/push-to-ghcr.git",
+  "org.opencontainers.image.created": "2021-07-01T14:28:46Z",
+  "org.opencontainers.image.revision": "6f51d3d7bb7d46959a26594cb2b807573e34c546",
+  "org.opencontainers.image.source": "https://github.com/macbre/push-to-ghcr.git"
 }
 ```
 
