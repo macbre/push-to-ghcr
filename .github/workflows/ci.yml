@@ -17,3 +17,10 @@ jobs:
         with:
           image_name: ${{ github.repository }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make sure that an image has been pushed and is properly labelled
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          docker pull docker ${IMAGE}
+          docker image inspect ${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
