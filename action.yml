@@ -42,10 +42,6 @@ runs:
           echo "COMMIT_TAG=latest" >> $GITHUB_ENV
         fi
 
-    - name: Show env variables
-      shell: bash
-      run: env | sort
-
     - name: "Build and push the Docker image"
       shell: bash
       run: |
@@ -69,7 +65,11 @@ runs:
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
           --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
-          --label org.label-schema.vcs-ref=${GITHUB_SHA}
+          --label org.label-schema.vcs-ref=${GITHUB_SHA} \
+          \
+          --label org.opencontainers.image.created=${BUILD_DATE} \
+          --label org.opencontainers.image.source=https://github.com/${{ inputs.image_name }}.git
+          --label org.opencontainers.image.revision=${GITHUB_SHA}
 
         echo
         echo "Pushing the Docker image ..."
