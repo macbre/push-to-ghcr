@@ -5,6 +5,11 @@ description: "This action simplifies pushes of Docker images ot ghcr.io reposito
 branding:
   icon: "arrow-up-circle"
   color: "blue"
+  
+inputs:
+  github_token: 
+     description: "Your ${{ secrets.GITHUB_TOKEN }}"
+     required: true
 
 runs:
   using: "composite"
@@ -13,8 +18,10 @@ runs:
     # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
     - name: Log in to the Container registry
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
       run: |
-        echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
     - name: Set commit tag
       shell: bash
