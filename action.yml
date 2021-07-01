@@ -5,47 +5,81 @@ description: "This action simplifies pushes of Docker images ot ghcr.io reposito
 branding:
   icon: "arrow-up-circle"
   color: "blue"
+  
+inputs:
+  github_token: 
+     description: "Your secrets.GITHUB_TOKEN"
+     required: true
+
+  image_name:
+    description: "Image name, e.g. my-user-name/my-repo"
+    required: true
+
+  repository:
+    description: "Docker repository to push an image to, defaults to ghcr.io"
+    required: true
+    default: "ghcr.io"
 
 runs:
   using: "composite"
   steps:
-    - uses: actions/checkout@master
-
+    # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
     - name: Log in to the Container registry
-      uses: docker/login-action@v1
-      with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+      run: |
+        echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-    - name: Set commit tag that will be used to tag a specific version
-      if: ${{ github.event_name == 'release' }}
+    - name: Set commit tag and image name
       shell: bash
       run: |
-        export COMMIT_TAG=${GITHUB_REF:10}
-        # export COMMIT_TAG=v2.3.0 # debug
-        echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
-    - name: Set commit tag to "latest"
-      if: ${{ github.event_name == 'push' }}
-      shell: bash
-      run: |
-        echo "COMMIT_TAG=latest" >> $GITHUB_ENV
+        if [ "${{ github.event_name }}" = "release" ]; then
+          export COMMIT_TAG=${GITHUB_REF:10}
+          # export COMMIT_TAG=v2.3.0 # debug
+          echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
+        else
+          echo "COMMIT_TAG=latest" >> $GITHUB_ENV
+        fi
+
     - name: Show env variables
+      shell: bash
       run: env | sort
 
-    # https://github.com/marketplace/actions/build-and-push-docker-images
-    - name: "Build and push Docker image (tag: ${{ env.COMMIT_TAG }}, event: ${{ github.event_name }})"
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: true
-        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }}
-        build-args: |
-          GITHUB_SHA=${GITHUB_SHA}
-        cache-from: |
-          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-    - name: Inspect an image
+    - name: "Build and push the Docker image"
       shell: bash
       run: |
-        docker images | head -n3
-        docker inspect --format='{{json .Config.Labels}}' ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.COMMIT_TAG }} | jq
+        # expand commands
+        set -x
+
+        export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+        echo
+        echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
+        echo
+
+        COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+          docker build . \
+          --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
+          \
+          --build-arg BUILD_DATE=${BUILD_DATE} \
+          --build-arg GITHUB_SHA=${GITHUB_SHA} \
+          \
+          --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
+          \
+          --label org.label-schema.build-date=${BUILD_DATE} \
+          --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
+          --label org.label-schema.vcs-ref=${GITHUB_SHA}
+
+        echo
+        echo "Pushing the Docker image ..."
+        echo
+
+        docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+        
+        echo
+        echo "Inspecting the image ..."
+        echo
+
+        docker images
+        docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
