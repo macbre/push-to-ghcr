@@ -41,6 +41,8 @@ runs:
         else
           echo "COMMIT_TAG=latest" >> $GITHUB_ENV
         fi
+        
+        echo "BUILD_DATE=
 
     - name: Show env variables
       shell: bash
@@ -57,7 +59,11 @@ runs:
           docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
-          --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+          --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
+          \
+          --label org.label-schema.build-date=`date -u +"%Y-%m-%dT%H:%M:%SZ"` \
+          --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
+          --label org.label-schema.vcs-ref=$GITHUB_SHA
 
         echo
         echo "Pushing the Docker image ..."
@@ -70,4 +76,4 @@ runs:
         echo
 
         docker images | head -n3
-        docker inspect --format='{{json .Config.Labels}}' ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq
+        docker inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
