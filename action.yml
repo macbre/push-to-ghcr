@@ -10,26 +10,22 @@ runs:
   using: "composite"
   steps:
 
-#     - name: Log in to the Container registry
-#       uses: docker/login-action@v1
-#       with:
-#         registry: ${{ env.REGISTRY }}
-#         username: ${{ github.actor }}
-#         password: ${{ secrets.GITHUB_TOKEN }}
+    # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
+    - name: Log in to the Container registry
+      shell: bash
+      run: |
+        echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-#     - name: Set commit tag that will be used to tag a specific version
-#       if: ${{ github.event_name == 'release' }}
-#       shell: bash
-#       run: |
-#         export COMMIT_TAG=${GITHUB_REF:10}
-#         # export COMMIT_TAG=v2.3.0 # debug
-#         echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
-
-#     - name: Set commit tag to "latest"
-#       if: ${{ github.event_name == 'push' }}
-#       shell: bash
-#       run: |
-#         echo "COMMIT_TAG=latest" >> $GITHUB_ENV
+    - name: Set commit tag
+      shell: bash
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          export COMMIT_TAG=${GITHUB_REF:10}
+          # export COMMIT_TAG=v2.3.0 # debug
+          echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
+        else
+          echo "COMMIT_TAG=latest" >> $GITHUB_ENV
+        fi
 
     - name: Show env variables
       shell: bash
