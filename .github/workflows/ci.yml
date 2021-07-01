@@ -14,3 +14,5 @@ jobs:
 
       - name: Run an action
         uses: ./
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
