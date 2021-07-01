@@ -11,16 +11,18 @@ Create a new GitHub Actions workflow as follows:
 ```yaml
 name: Build and publish a Docker image to ghcr.io
 on:
+
   # publish on releases (tagged as "x.y.z" - "v" prefix is removed)
   release:
     types: [ published ]
+
   # publish on pushes to the main branch (tagged as "master")
   push:
     branches:
       - master
 
 jobs:
-  ci:
+  docker_publish:
     runs-on: "ubuntu-20.04"
 
     steps:
