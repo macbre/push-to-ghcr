@@ -1,8 +1,10 @@
 # push-to-ghcr
-This action simplifies pushes of Docker images to [ghcr.io repository](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+This action simplifies pushes of Docker images to [a public GitHub Containers Registry at ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 
-* On each `release` event (releases named `vx.y.z`) your image will be tagged with `x.y.z`
-* On each `push` event your image will be tagged with `latest`
+`Dockerfile` from your repository is build and published on:
+
+* `release` event (releases named `vx.y.z`) your image will be tagged with `x.y.z`
+* `push` event your image will be tagged with `latest`
 
 ## How to use it?
 
