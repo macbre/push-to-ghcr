@@ -54,6 +54,8 @@ runs:
         echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
         echo
 
+        docker pull ${{ inputs.repository }}/${{ inputs.image_name }}:latest
+
         COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
           docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
