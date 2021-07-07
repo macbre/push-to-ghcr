@@ -51,6 +51,7 @@ runs:
         docker -v
 
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        export GITHUB_URL=https://github.com/${{ github.repository }}
 
         echo
         echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
@@ -69,11 +70,11 @@ runs:
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
-          --label org.label-schema.vcs-url=https://github.com/${{ inputs.image_name }}.git \
+          --label org.label-schema.vcs-url=${GITHUB_URL} \
           --label org.label-schema.vcs-ref=${GITHUB_SHA} \
           \
           --label org.opencontainers.image.created=${BUILD_DATE} \
-          --label org.opencontainers.image.source=https://github.com/${{ inputs.image_name }}.git \
+          --label org.opencontainers.image.source=${GITHUB_URL} \
           --label org.opencontainers.image.revision=${GITHUB_SHA}
 
         echo
