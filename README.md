@@ -1,10 +1,14 @@
 # push-to-ghcr
-This action simplifies pushes of Docker images to [a public GitHub Containers Registry at ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+This action simplifies pushes of Docker images to [the GitHub Containers Registry at ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 
 `Dockerfile` from your repository is build and published on:
 
 * `release` event (releases named `vx.y.z`) your image will be tagged with `x.y.z`
 * `push` event your image will be tagged with `latest`
+
+### Private containers
+
+Images built for private repositories will be published as private containers to ghcr.io. Please refer to https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry on how to set up access to them.
 
 ## How to use it?
 
@@ -14,11 +18,11 @@ Create a new GitHub Actions workflow as follows:
 name: Build and publish a Docker image to ghcr.io
 on:
 
-  # publish on releases (tagged as "x.y.z" - "v" prefix is removed)
+  # publish on releases, e.g. v2.1.13 (tagged as "2.1.13" - "v" prefix is removed)
   release:
     types: [ published ]
 
-  # publish on pushes to the main branch (tagged as "master")
+  # publish on pushes to the main branch (tagged as "latest")
   push:
     branches:
       - master
