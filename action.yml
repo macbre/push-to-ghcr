@@ -48,17 +48,20 @@ runs:
         # expand commands
         set -x
 
+        docker -v
+
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
         echo
         echo "Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} ..."
         echo
 
-        docker pull ${{ inputs.repository }}/${{ inputs.image_name }}:latest
-
-        COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 \
+        # https://docs.docker.com/develop/develop-images/build_enhancements/
+        # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
+        DOCKER_BUILDKIT=1 \
           docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
+          --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
           --build-arg BUILD_DATE=${BUILD_DATE} \
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
