@@ -8,7 +8,7 @@ This action simplifies pushes of Docker images to [the GitHub Containers Registr
 
 ### Private containers
 
-Images built for private repositories will be published as private containers to ghcr.io. Please refer to [GitHub's documentation on how to set up access](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry) to them via [personal access token (also known as PAT)](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token).
+Images built for private repositories will be published as private containers to ghcr.io. Please refer to [GitHub's documentation on how to set up access](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry) to them via [personal access token (also known as PAT)](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token). PAT can be [created in "Developer settings" panel](https://github.com/settings/tokens).
 
 ## How to use it?
 
