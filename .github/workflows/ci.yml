@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  ghcr:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
@@ -31,3 +31,35 @@ jobs:
           docker rmi ${IMAGE}
           docker pull ${IMAGE}
           docker image inspect ${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
+
+  ghcr_and_docker_io:
+    runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
+
+      - name: Make sure that an image has been built
+        env:
+          IMAGE: ${{ github.repository }}
+        run: |
+          docker images | grep ${IMAGE}
+
+      - name: Make sure that an image has been pushed and is properly labelled
+        env:
+          IMAGE: ${{ github.repository }}
+        run: |
+          docker rmi ghcr.io/${IMAGE}
+          docker rmi docker.io/${IMAGE}
+
+          docker pull ghcr.io/${IMAGE}
+          docker pull docker.io/${IMAGE}
+
+          docker image inspect ghcr.io/${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
+          docker image inspect docker.io/${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
