@@ -106,14 +106,14 @@ runs:
       env:
         DOCKER_TOKEN: ${{ inputs.docker_io_token }}
       run: |
-        # expand commands
-        set -x
-
         if [ -z "${DOCKER_TOKEN}" ]; then
           echo
-          echo "NOT pushing the Docker image to docker.io ..."
+          echo "NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
           echo
         else
+          # expand commands
+          set -x
+
           echo
           echo "Pushing the Docker image to docker.io ..."
           echo
