@@ -18,11 +18,11 @@ Create a new GitHub Actions workflow as follows:
 name: Build and publish a Docker image to ghcr.io
 on:
 
-  # publish on releases, e.g. v2.1.13 (tagged as "2.1.13" - "v" prefix is removed)
+  # publish on releases, e.g. v2.1.13 (image tagged as "2.1.13" - "v" prefix is removed)
   release:
     types: [ published ]
 
-  # publish on pushes to the main branch (tagged as "latest")
+  # publish on pushes to the main branch (image tagged as "latest")
   push:
     branches:
       - master
@@ -36,10 +36,12 @@ jobs:
 
       # https://github.com/marketplace/actions/push-to-ghcr
       - name: Build and publish a Docker image for ${{ github.repository }}
-        uses: macbre/push-to-ghcr@v2
+        uses: macbre/push-to-ghcr@master
         with:
           image_name: ${{ github.repository }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          # optionally push to the Docker Hub (docker.io)
+          # docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
 ```
 
 This action assumes that your `Dockerfile` is in the root directory of your repository.
@@ -65,3 +67,23 @@ Additonally, `BUILD_DATE` and `GITHUB_SHA` build args are set resulting with the
 BUILD_DATE=2021-07-01T12:52:03Z
 GITHUB_SHA=26b095f37cdf56a632aa2235345d4174b26e1d66
 ```
+
+## Optional pushes to Docker Hub (docker.io)
+
+On 18th June 2021 [Docker Hub discontinued Autobuilds on the free tier](https://www.docker.com/blog/changes-to-docker-hub-autobuilds/). However, you can use this action to additionally push to docker.io repository.
+
+1. You will need an access tokens created via https://hub.docker.com/settings/security.
+2. Store it in your GitHub repository secrets, e.g. as `DOCKER_IO_ACCESS_TOKEN`.
+3. Provide additional option in `with` section in action invocation:
+
+```yaml
+      # (...)
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # optionally push to the Docker Hub (docker.io)\
+```
+
+Your image will be pushed to both ghcr.io and docker.io repositories using the name provided as `image_name`.
