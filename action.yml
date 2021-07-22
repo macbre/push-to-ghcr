@@ -20,6 +20,10 @@ inputs:
     required: true
     default: "ghcr.io"
 
+  docker_io_token:
+    description: "Your docker.io token created via https://hub.docker.com/settings/security"
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -42,7 +46,7 @@ runs:
           echo "COMMIT_TAG=latest" >> $GITHUB_ENV
         fi
 
-    - name: "Build and push the Docker image"
+    - name: "Build the Docker image"
       shell: bash
       run: |
         # expand commands
@@ -68,6 +72,7 @@ runs:
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
           \
           --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
+          --tag docker.io/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} \
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
           --label org.label-schema.vcs-url=${GITHUB_URL} \
@@ -76,12 +81,6 @@ runs:
           --label org.opencontainers.image.created=${BUILD_DATE} \
           --label org.opencontainers.image.source=${GITHUB_URL} \
           --label org.opencontainers.image.revision=${GITHUB_SHA}
-
-        echo
-        echo "Pushing the Docker image ..."
-        echo
-
-        docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
         
         echo
         echo "Inspecting the image ..."
@@ -89,3 +88,37 @@ runs:
 
         docker images
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
+
+    - name: "Push the Docker image to ghcr.io"
+      shell: bash
+      run: |
+        # expand commands
+        set -x
+        
+        echo
+        echo "Pushing the Docker image to ghcr.io ..."
+        echo
+
+        docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+
+    - name: "Push the Docker image to docker.io"
+      shell: bash
+      env:
+        DOCKER_TOKEN: ${{ inputs.docker_io_token }}
+      run: |
+        if [ -z "${DOCKER_TOKEN}" ]; then
+          echo
+          echo "NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
+          echo
+        else
+          # expand commands
+          set -x
+
+          echo
+          echo "Pushing the Docker image to docker.io ..."
+          echo
+
+          echo "${DOCKER_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
+
+          docker push docker.io/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+        fi
