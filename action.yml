@@ -58,8 +58,7 @@ runs:
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-        time docker build . \
-          --quiet \
+        docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
@@ -75,7 +74,8 @@ runs:
           \
           --label org.opencontainers.image.created=${BUILD_DATE} \
           --label org.opencontainers.image.source=${GITHUB_URL} \
-          --label org.opencontainers.image.revision=${GITHUB_SHA}
+          --label org.opencontainers.image.revision=${GITHUB_SHA} \
+          | tee
 
         echo "::endgroup::"
 
