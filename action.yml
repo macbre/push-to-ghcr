@@ -43,13 +43,12 @@ runs:
         echo "::group::Set commit tag and image name"
         if [ "${{ github.event_name }}" = "release" ]; then
           export COMMIT_TAG=${GITHUB_REF:10}
-          # export COMMIT_TAG=v2.3.0 # debug
-          echo "COMMIT_TAG=${COMMIT_TAG//v/}" >> $GITHUB_ENV # remove "v" suffix
-          echo "Tagging with ${COMMIT_TAG//v/}"
+          export COMMIT_TAG=${COMMIT_TAG//v/}
         else
-          echo "COMMIT_TAG=latest" >> $GITHUB_ENV
-          echo "Tagging with latest"
+          export COMMIT_TAG=latest
         fi
+
+        echo "Tagging with ${COMMIT_TAG}"
         echo "::endgroup::"
 
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
