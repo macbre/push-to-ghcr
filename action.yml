@@ -32,12 +32,14 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
-      run: |
-        echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        DOCKER_BUILDKIT: 1
+        DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
 
-    - name: Set commit tag and image name
-      shell: bash
       run: |
+        echo "::group::Log in to the GitHub Container registry (ghcr.io)"
+        echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+        echo "::endgroup::"
+
         echo "::group::Set commit tag and image name"
         if [ "${{ github.event_name }}" = "release" ]; then
           export COMMIT_TAG=${GITHUB_REF:10}
@@ -50,11 +52,6 @@ runs:
         fi
         echo "::endgroup::"
 
-    - name: "Build the Docker image"
-      shell: bash
-      env:
-        DOCKER_BUILDKIT: 1
-      run: |
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         export GITHUB_URL=https://github.com/${{ github.repository }}
 
@@ -90,9 +87,6 @@ runs:
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
         echo "::endgroup::"
 
-    - name: "Push the Docker image to ghcr.io"
-      shell: bash
-      run: |
         echo "::group::Pushing the Docker image to ghcr.io ..."
 
         set -x
@@ -101,16 +95,11 @@ runs:
 
         echo "::endgroup::"
 
-    - name: "Push the Docker image to docker.io"
-      shell: bash
-      env:
-        DOCKER_TOKEN: ${{ inputs.docker_io_token }}
-      run: |
-        if [ -z "${DOCKER_TOKEN}" ]; then
+        if [ -z "${DOCKER_IO_TOKEN}" ]; then
           echo "::warning::NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
         else
           echo "::group::Pushing the Docker image to docker.io ..."
-          echo "${DOCKER_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
+          echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
 
           set -x
           docker push --quiet docker.io/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
