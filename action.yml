@@ -38,6 +38,7 @@ runs:
     - name: Set commit tag and image name
       shell: bash
       run: |
+        echo "::group::Set commit tag and image name"      
         if [ "${{ github.event_name }}" = "release" ]; then
           export COMMIT_TAG=${GITHUB_REF:10}
           # export COMMIT_TAG=v2.3.0 # debug
@@ -45,10 +46,13 @@ runs:
         else
           echo "COMMIT_TAG=latest" >> $GITHUB_ENV
         fi
+        echo "::endgroup::"
 
     - name: "Build the Docker image"
       shell: bash
       run: |
+        echo "::group::Build the Docker image"
+
         # expand commands
         set -x
 
@@ -81,25 +85,23 @@ runs:
           --label org.opencontainers.image.created=${BUILD_DATE} \
           --label org.opencontainers.image.source=${GITHUB_URL} \
           --label org.opencontainers.image.revision=${GITHUB_SHA}
-        
-        echo
-        echo "Inspecting the image ..."
-        echo
+        echo "::endgroup::"
 
+        echo "::group::Inspecting the image"
         docker images
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }} | jq '.[].Config.Labels'
+        echo "::endgroup::"
 
     - name: "Push the Docker image to ghcr.io"
       shell: bash
       run: |
+        echo "::group::Pushing the Docker image to ghcr.io ..."
+
         # expand commands
         set -x
-        
-        echo
-        echo "Pushing the Docker image to ghcr.io ..."
-        echo
 
-        docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+        docker push --quiet ${{ inputs.repository }}/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+        echo "::endgroup::"
 
     - name: "Push the Docker image to docker.io"
       shell: bash
@@ -107,18 +109,15 @@ runs:
         DOCKER_TOKEN: ${{ inputs.docker_io_token }}
       run: |
         if [ -z "${DOCKER_TOKEN}" ]; then
-          echo
-          echo "NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
-          echo
+          echo "::warning::NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
         else
+          echo "::group::Pushing the Docker image to docker.io ..."
+
           # expand commands
           set -x
 
-          echo
-          echo "Pushing the Docker image to docker.io ..."
-          echo
-
           echo "${DOCKER_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
 
-          docker push docker.io/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+          docker push --quiet docker.io/${{ inputs.image_name }}:${{ env.COMMIT_TAG }}
+          echo "::endgroup::"
         fi
