@@ -59,6 +59,7 @@ runs:
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
         docker build . \
+          --quiet \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
@@ -74,15 +75,19 @@ runs:
           \
           --label org.opencontainers.image.created=${BUILD_DATE} \
           --label org.opencontainers.image.source=${GITHUB_URL} \
-          --label org.opencontainers.image.revision=${GITHUB_SHA} \
-          | tee
+          --label org.opencontainers.image.revision=${GITHUB_SHA}
 
         echo "::endgroup::"
 
         echo "::group::Inspecting the image ..."
         docker images
+
+        echo "Labels:"
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} | jq '.[].Config.Labels'
+
+        echo "Env variables:"
         docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} | jq '.[].Config.Env'
+
         echo "::endgroup::"
 
         echo "::group::Pushing the Docker image to ${{ inputs.repository }} ..."
