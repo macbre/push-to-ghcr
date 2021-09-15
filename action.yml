@@ -58,8 +58,7 @@ runs:
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-        docker build . \
-          --quiet \
+        >&0 docker build . \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
