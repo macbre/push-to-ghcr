@@ -36,6 +36,8 @@ runs:
         DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
 
       run: |
+        echo "Using $(docker -v)"
+
         echo "::group::Logging into the GitHub Container registry (ghcr.io) ..."
         echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
         echo "::endgroup::"
@@ -59,6 +61,7 @@ runs:
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
         >&0 docker build . \
+          --progress tty \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
