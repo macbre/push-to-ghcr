@@ -36,6 +36,8 @@ runs:
         DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
 
       run: |
+        echo "Using $(docker -v)"
+
         echo "::group::Logging into the GitHub Container registry (ghcr.io) ..."
         echo "${GITHUB_TOKEN}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
         echo "::endgroup::"
@@ -58,8 +60,8 @@ runs:
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-        docker build . \
-          --quiet \
+        >&0 docker build . \
+          --progress tty \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
@@ -91,11 +93,7 @@ runs:
         echo "::endgroup::"
 
         echo "::group::Pushing the Docker image to ${{ inputs.repository }} ..."
-
-        set -x
-        docker push --quiet ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG}
-        set +x
-
+        >&0 docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} && echo "Pushed"
         echo "::endgroup::"
 
         if [ -z "${DOCKER_IO_TOKEN}" ]; then
@@ -104,9 +102,7 @@ runs:
           echo "::group::Pushing the Docker image to docker.io ..."
           echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
 
-          set -x
-          docker push --quiet docker.io/${{ inputs.image_name }}:${COMMIT_TAG}
-          set +x
+          >&0 docker push docker.io/${{ inputs.image_name }}:${COMMIT_TAG} && echo "Pushed"
 
           echo "::endgroup::"
         fi
