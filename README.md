@@ -61,7 +61,18 @@ The image that is pushed is labelled with `org.label-schema` [and `org.openconta
 }
 ```
 
-Additonally, `BUILD_DATE` and `GITHUB_SHA` build args are set resulting with these env variables being present in the container:
+Additonally, `BUILD_DATE` and `GITHUB_SHA` build args are passed. They can be used to set env variables:
+
+```Dockerfile
+# these two are passed as build args
+ARG BUILD_DATE
+ARG GITHUB_SHA
+
+ENV BUILD_DATE=$BUILD_DATE
+ENV GITHUB_SHA=$GITHUB_SHA
+```
+
+For instance:
 
 ```
 BUILD_DATE=2021-07-01T12:52:03Z
