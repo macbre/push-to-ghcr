@@ -20,6 +20,11 @@ inputs:
     required: false
     default: "./Dockerfile"
 
+  context:
+    description: "A path to the context in which the build will happen, see https://docs.docker.com/engine/reference/commandline/build/"
+    required: false
+    default: "."
+
   repository:
     description: "Docker repository to push an image to, defaults to ghcr.io"
     required: true
@@ -61,11 +66,11 @@ runs:
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         export GITHUB_URL=https://github.com/${{ github.repository }}
 
-        echo "::group::Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} from ${{ inputs.dockerfile }}..."
+        echo "::group::Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} from ${{ inputs.dockerfile }} in ${{ inputs.context}} context ..."
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
-        >&0 docker build . \
+        >&0 docker build \
           --file ${{ inputs.dockerfile }} \
           --progress tty \
           --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
@@ -83,7 +88,8 @@ runs:
           \
           --label org.opencontainers.image.created=${BUILD_DATE} \
           --label org.opencontainers.image.source=${GITHUB_URL} \
-          --label org.opencontainers.image.revision=${GITHUB_SHA}
+          --label org.opencontainers.image.revision=${GITHUB_SHA} \
+          ${{ inputs.context }}
 
         echo "::endgroup::"
 
