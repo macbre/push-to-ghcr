@@ -44,7 +44,9 @@ jobs:
           # docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
 ```
 
-This action assumes that your `Dockerfile` is in the root directory of your repository.
+This action assumes that your **`Dockerfile` is in the root directory of your repository**.
+
+However, you can use `dockerfile` input to **specify a different path** (relative to the root directory of your repository). Additionaly, `context` input can also be provided. [Docker docs should provide more context on `context` ;)](https://docs.docker.com/engine/reference/commandline/build/).
 
 ## Labels and build args
 
