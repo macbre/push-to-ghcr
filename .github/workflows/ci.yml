@@ -32,6 +32,26 @@ jobs:
           docker pull ${IMAGE}
           docker image inspect ${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
 
+  ghcr_with_dockerfile_in_subdir:
+    runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: "foo/bar-app"
+          dockerfile: "./foo/bar/Dockerfile"
+          context: "./foo"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Make sure that an image has been built
+        env:
+          IMAGE: ghcr.io/foo/bar-app
+        run: |
+          docker images | grep ${IMAGE}
+
   ghcr_and_docker_io:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
