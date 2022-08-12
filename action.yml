@@ -33,6 +33,10 @@ inputs:
   docker_io_token:
     description: "Your docker.io token created via https://hub.docker.com/settings/security"
     required: false
+  
+  image_tag:
+    description: Image tag, e.g. latest. Will overwrite the tag latest tag on a push, and have no effect on a release.
+    required: false
 
 runs:
   using: "composite"
@@ -44,6 +48,7 @@ runs:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         DOCKER_BUILDKIT: 1
         DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
+        IMAGE_TAG: ${{ inputs.image_tag }}
 
       run: |
         echo "Using $(docker -v)"
@@ -57,7 +62,11 @@ runs:
           export COMMIT_TAG=${GITHUB_REF:10}
           export COMMIT_TAG=${COMMIT_TAG//v/}
         else
-          export COMMIT_TAG=latest
+          if [ -z ${IMAGE_TAG} ]; then
+            export COMMIT_TAG=latest
+          else
+            export COMMIT_TAG=${IMAGE_TAG}
+          fi
         fi
 
         echo "Tagging with ${COMMIT_TAG}"
