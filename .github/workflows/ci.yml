@@ -17,21 +17,23 @@ jobs:
         with:
           image_name: ${{ github.repository }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: foo_tag
 
-      - name: Make sure that an image has been built
+      - name: Make sure that an image has been built and tagged properly
         env:
           IMAGE: ghcr.io/${{ github.repository }}
         run: |
           docker images | grep ${IMAGE}
+          docker images | grep foo_tag
 
       - name: Make sure that an image has been pushed and is properly labelled
         env:
           IMAGE: ghcr.io/${{ github.repository }}
         run: |
           set -x
-          docker rmi ${IMAGE}
-          docker pull ${IMAGE}
-          docker image inspect ${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker rmi ${IMAGE}:foo_tag
+          docker pull ${IMAGE}:foo_tag
+          docker image inspect ${IMAGE}:foo_tag | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
 
   ghcr_with_dockerfile_in_subdir:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
