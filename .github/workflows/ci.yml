@@ -33,7 +33,7 @@ jobs:
           set -x
           docker rmi ${IMAGE}:foo_tag
           docker pull ${IMAGE}:foo_tag
-          docker image inspect ${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker image inspect ${IMAGE}:foo_tag | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
 
   ghcr_with_dockerfile_in_subdir:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
