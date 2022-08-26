@@ -84,5 +84,5 @@ jobs:
           docker pull ghcr.io/${IMAGE}
           docker pull docker.io/${IMAGE}
 
-          docker image inspect ghcr.io/${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
-          docker image inspect docker.io/${IMAGE} | jq '.[].Config.Labels' | grep "${GITHUB_SHA}"
+          docker image inspect ghcr.io/${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker image inspect docker.io/${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
