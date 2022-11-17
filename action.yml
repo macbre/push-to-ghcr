@@ -118,7 +118,7 @@ runs:
         echo "::endgroup::"
 
         if [ -z "${DOCKER_IO_TOKEN}" ]; then
-          echo "::warning::NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
+          echo "::notice::NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
         else
           echo "::group::Pushing the Docker image to docker.io ..."
           echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
