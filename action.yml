@@ -12,7 +12,7 @@ inputs:
      required: true
 
   image_name:
-    description: "Image name, e.g. my-user-name/my-repo"
+    description: "Image name, e.g. my-user-name/my-repo (will be lowercased)"
     required: true
 
   dockerfile:
@@ -53,6 +53,7 @@ runs:
         DOCKER_BUILDKIT: 1
         DOCKER_IO_USER: ${{ inputs.docker_io_user }}
         DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
+        IMAGE_NAME: ${{ inputs.image_name }}
         IMAGE_TAG: ${{ inputs.image_tag }}
 
       run: |
@@ -73,6 +74,9 @@ runs:
             export COMMIT_TAG=${IMAGE_TAG}
           fi
         fi
+        
+        # lowercase the image name, see https://github.com/macbre/push-to-ghcr/issues/12
+        export IMAGE_NAME=$(echo ${IMAGE_NAME} | tr '[:upper:]' '[:lower:]')
 
         echo "Tagging with ${COMMIT_TAG}"
         echo "::endgroup::"
@@ -80,21 +84,21 @@ runs:
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         export GITHUB_URL=https://github.com/${{ github.repository }}
 
-        echo "::group::Building the Docker image: ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} from ${{ inputs.dockerfile }} in ${{ inputs.context}} context ..."
+        echo "::group::Building the Docker image: ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} from ${{ inputs.dockerfile }} in ${{ inputs.context}} context ..."
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
         >&0 docker build \
           --file ${{ inputs.dockerfile }} \
           --progress tty \
-          --cache-from ${{ inputs.repository }}/${{ inputs.image_name }}:latest \
+          --cache-from ${{ inputs.repository }}/${IMAGE_NAME}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
           --build-arg BUILD_DATE=${BUILD_DATE} \
           --build-arg GITHUB_SHA=${GITHUB_SHA} \
           \
-          --tag ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} \
-          --tag docker.io/${{ inputs.image_name }}:${COMMIT_TAG} \
+          --tag ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} \
+          --tag docker.io/${IMAGE_NAME}:${COMMIT_TAG} \
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
           --label org.label-schema.vcs-url=${GITHUB_URL} \
@@ -111,15 +115,15 @@ runs:
         docker images
 
         echo "Labels:"
-        docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} | jq '.[].Config.Labels'
+        docker image inspect ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Labels'
 
         echo "Env variables:"
-        docker image inspect ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} | jq '.[].Config.Env'
+        docker image inspect ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
 
         echo "::endgroup::"
 
         echo "::group::Pushing the Docker image to ${{ inputs.repository }} ..."
-        >&0 docker push ${{ inputs.repository }}/${{ inputs.image_name }}:${COMMIT_TAG} && echo "Pushed"
+        >&0 docker push ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
         echo "::endgroup::"
 
         if [ -z "${DOCKER_IO_TOKEN}" ]; then
@@ -132,7 +136,7 @@ runs:
           echo "::group::Pushing the Docker image to docker.io as ${DOCKER_IO_USER}..."
           echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${DOCKER_IO_USER}" --password-stdin
 
-          >&0 docker push docker.io/${{ inputs.image_name }}:${COMMIT_TAG} && echo "Pushed"
+          >&0 docker push docker.io/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
 
           echo "::endgroup::"
         fi
