@@ -15,7 +15,7 @@ jobs:
       - name: Run an action
         uses: ./
         with:
-          image_name: ${{ github.repository }}
+          image_name: "MaCBre/Push-to-ghcr" # make sure this is lowercased by the action
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_tag: foo_tag
 
