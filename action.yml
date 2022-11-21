@@ -30,6 +30,10 @@ inputs:
     required: true
     default: "ghcr.io"
 
+  docker_io_user:
+    description: "A username to use when pushing an image to docker.io (defaults to the github.actor)"
+    required: false
+
   docker_io_token:
     description: "Your docker.io token created via https://hub.docker.com/settings/security"
     required: false
@@ -47,6 +51,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.github_token }}
         DOCKER_BUILDKIT: 1
+        DOCKER_IO_USER: ${{ inputs.docker_io_user }}
         DOCKER_IO_TOKEN: ${{ inputs.docker_io_token }}
         IMAGE_TAG: ${{ inputs.image_tag }}
 
@@ -120,8 +125,12 @@ runs:
         if [ -z "${DOCKER_IO_TOKEN}" ]; then
           echo "::notice::NOT pushing the Docker image to docker.io ... Provide 'docker_io_token' if needed."
         else
-          echo "::group::Pushing the Docker image to docker.io ..."
-          echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${{ github.actor }}" --password-stdin
+          if [ -z ${DOCKER_IO_USER} ]; then
+            export DOCKER_IO_USER="${{ github.actor }}"
+          fi
+
+          echo "::group::Pushing the Docker image to docker.io as ${DOCKER_IO_USER}..."
+          echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${DOCKER_IO_USER}" --password-stdin
 
           >&0 docker push docker.io/${{ inputs.image_name }}:${COMMIT_TAG} && echo "Pushed"
 

@@ -42,11 +42,24 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           # optionally push to the Docker Hub (docker.io)
           # docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
+          # customize the username to be used when pushing to the Docker Hub
+          # docker_io_user: foobar  # see https://github.com/macbre/push-to-ghcr/issues/14
 ```
 
 This action assumes that your **`Dockerfile` is in the root directory of your repository**.
 
 However, you can use `dockerfile` input to **specify a different path** (relative to the root directory of your repository). Additionaly, `context` input can also be provided. [Docker docs should provide more context on `context` ;)](https://docs.docker.com/engine/reference/commandline/build/).
+
+## Input parameters
+
+* `github_token` (**required**): Your `secrets.GITHUB_TOKEN`
+* `image_name` (**required**): Image name, e.g. `my-user-name/my-repo`
+* `dockerfile` (defaults to `./Dockerfile`): A path to the Dockerfile (if it's not in the repository's root directory)
+* `context` (defaults to `.`): A path to the context in which the build will happen, see https://docs.docker.com/engine/reference/commandline/build/
+* `repository` (defaults to `ghcr.io`): Docker repository to push an image to
+* `docker_io_user`: A username to use when pushing an image to `docker.io` (defaults to the `github.actor`)
+* `docker_io_token`: Your `docker.io` token created via https://hub.docker.com/settings/security
+* `image_tag`: Image tag, e.g. `latest`. Will overwrite the tag latest tag on a push, and have no effect on a release
 
 ## Labels and build args
 
