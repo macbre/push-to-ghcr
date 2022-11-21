@@ -31,7 +31,7 @@ inputs:
     default: "ghcr.io"
 
   docker_io_user:
-    description: "A username to use when pushing an image to docker.io (defaults to ${{ github.actor }})"
+    description: "A username to use when pushing an image to docker.io (defaults to the github.actor)"
     required: false
 
   docker_io_token:
