@@ -90,8 +90,8 @@ jobs:
           docker image inspect ghcr.io/${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
           docker image inspect docker.io/${IMAGE} | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
 
-  # test errors handling: push fails due to the missing / incorrect token (see #26)
-  push_fails:
+  # test errors handling: push to docker.io fails due to the incorrect token (see #26)
+  push_to_docker_io_fails:
     runs-on: "ubuntu-22.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
@@ -102,5 +102,5 @@ jobs:
         uses: ./
         with:
           image_name: ${{ github.repository }}
-          github_token: s0me-broken-token
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           docker_io_token: s0me-broken-token
