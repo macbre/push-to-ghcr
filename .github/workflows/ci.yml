@@ -5,6 +5,10 @@ on:
       - master
   pull_request:
 
+# https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs#defining-access-for-the-github_token-scopes
+permissions:
+  packages: write
+
 jobs:
   ghcr:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
