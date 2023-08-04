@@ -90,7 +90,6 @@ runs:
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
         >&0 docker build \
           --file ${{ inputs.dockerfile }} \
-          --progress tty \
           --cache-from ${{ inputs.repository }}/${IMAGE_NAME}:latest \
           --build-arg BUILDKIT_INLINE_CACHE=1 \
           \
