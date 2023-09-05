@@ -88,6 +88,7 @@ runs:
 
         # https://docs.docker.com/develop/develop-images/build_enhancements/
         # https://docs.docker.com/engine/reference/commandline/build/#specifying-external-cache-sources
+        set -x
         >&0 docker build \
           --file ${{ inputs.dockerfile }} \
           --cache-from ${{ inputs.repository }}/${IMAGE_NAME}:latest \
@@ -107,6 +108,7 @@ runs:
           --label org.opencontainers.image.source=${GITHUB_URL} \
           --label org.opencontainers.image.revision=${GITHUB_SHA} \
           ${{ inputs.context }}
+        set +x
 
         echo "::endgroup::"
 
