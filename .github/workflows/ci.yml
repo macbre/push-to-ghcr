@@ -13,7 +13,7 @@ jobs:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run an action
         uses: ./
@@ -42,7 +42,7 @@ jobs:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run an action
         uses: ./
@@ -64,7 +64,7 @@ jobs:
     runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Run an action
         uses: ./
