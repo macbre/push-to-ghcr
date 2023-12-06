@@ -10,7 +10,7 @@ permissions: write-all
 
 jobs:
   ghcr:
-    runs-on: "ubuntu-20.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on 
+    runs-on: "ubuntu-22.04"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on 
 
     steps:
       - uses: actions/checkout@v4
