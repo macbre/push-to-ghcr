@@ -1,4 +1,7 @@
 # push-to-ghcr
+
+[![ghcr pulls](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fipitio%2Fghcr-pulls%2Fmaster%2Findex.json&query=%24%5B%3F(%40.owner%3D%3D%22macbre%22%20%26%26%20%40.repo%3D%3D%22push-to-ghcr%22%20%26%26%20%40.image%3D%3D%22push-to-ghcr%22)%5D.pulls&logo=github&label=pulls)](https://github.com/macbre/push-to-ghcr/pkgs/container/push-to-ghcr)
+
 This action simplifies pushes of Docker images to [the GitHub Containers Registry at ghcr.io](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
 
 `Dockerfile` from your repository is build and published on:
