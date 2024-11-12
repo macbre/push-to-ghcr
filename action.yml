@@ -48,6 +48,10 @@ inputs:
     required: false
     default: "FOO=bar"
 
+  extra_args:
+    description: Additional arguments to be passed to "docker build", you can pass custom tags here for instance.
+    required: false
+
 runs:
   using: "composite"
   steps:
@@ -107,6 +111,7 @@ runs:
           \
           --tag ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} \
           --tag docker.io/${IMAGE_NAME}:${COMMIT_TAG} \
+          ${{ inputs.extra_args }} \
           \
           --label org.label-schema.build-date=${BUILD_DATE} \
           --label org.label-schema.vcs-url=${GITHUB_URL} \
