@@ -51,7 +51,7 @@ inputs:
   extra_args:
     description: Additional arguments to be passed to "docker build", you can pass custom tags here for instance.
     required: false
-
+    default: ""
 runs:
   using: "composite"
   steps:
