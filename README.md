@@ -65,6 +65,7 @@ However, you can use `dockerfile` input to **specify a different path** (relativ
 * `docker_io_user`: A username to use when pushing an image to `docker.io` (defaults to the `github.actor`)
 * `docker_io_token`: Your `docker.io` token created via https://hub.docker.com/settings/security
 * `image_tag`: Image tag, e.g. `latest`. Will overwrite the tag latest tag on a push, and have no effect on a release
+* `extra_args`: additinal arguments to pass to `docker build`, you can for instance pass here additional tags to be used for an image, e.g. (`extra_args: "--tag foo:latest --tag app:bar"`)
 
 ## Labels and build args
 
