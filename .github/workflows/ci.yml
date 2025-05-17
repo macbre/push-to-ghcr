@@ -38,6 +38,30 @@ jobs:
           docker pull ${IMAGE}:foo_tag
           docker image inspect ${IMAGE}:foo_tag | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
 
+  ghcr_with_extra_args:
+    runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on 
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: "MaCBre/Push-to-ghcr" # make sure this is lowercased by the action
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: foo_tag
+          # use this input to pass extra arguments to 'docker build', e.g. use multiple tags for an image
+          extra_args: '--tag foo.net/app:latest --annotation "foo=bar"'
+
+      - name: Make sure that an image has been built and tagged properly
+        env:
+          IMAGE: ghcr.io/${{ github.repository }}
+        run: |
+          set -x
+          docker images | grep ${IMAGE}
+          docker images | grep foo_tag
+          docker images | grep 'foo.net/app'
+
   ghcr_with_dockerfile_in_subdir:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
