@@ -9,7 +9,7 @@ This action simplifies pushes of container images to [the GitHub Containers Regi
 * `release` event (releases named `vx.y.z`) your image will be tagged with `x.y.z`
 * `push` event your image will be tagged with `latest`
 
-Additionally, this action will also **automatically lowercase the repository name** to be able to push an image to Docker.
+Additionally, this action will also **automatically lowercase the repository name** to be able to push an image to the repository.
 
 ### Private containers
 
@@ -61,7 +61,7 @@ However, you can use `dockerfile` input to **specify a different path** (relativ
 * `image_name` (**required**): Image name, e.g. `my-user-name/my-repo` (will be lowercased internally)
 * `dockerfile` (defaults to `./Dockerfile`): A path to the Dockerfile (if it's not in the repository's root directory)
 * `context` (defaults to `.`): A path to the context in which the build will happen, see https://docs.docker.com/engine/reference/commandline/build/
-* `repository` (defaults to `ghcr.io`): Docker repository to push an image to
+* `repository` (defaults to `ghcr.io`): containers repository to push an image to
 * `docker_io_user`: A username to use when pushing an image to `docker.io` (defaults to the `github.actor`)
 * `docker_io_token`: Your `docker.io` token created via https://hub.docker.com/settings/security
 * `image_tag`: Image tag, e.g. `latest`. Will overwrite the tag latest tag on a push, and have no effect on a release
