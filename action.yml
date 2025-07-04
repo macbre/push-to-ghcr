@@ -74,6 +74,7 @@ runs:
         echo "::endgroup::"
 
         echo "::group::Set commit tag and image name"
+        echo "GitHub event data: ${{ toJSON(github.event) }}"
 
         # github.ref: For workflows triggered by pull_request, this is the pull request merge branch.
         #             For workflows triggered by release, this is the release tag created.
