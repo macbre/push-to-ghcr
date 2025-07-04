@@ -74,15 +74,14 @@ runs:
         echo "::endgroup::"
 
         echo "::group::Set commit tag and image name"
-        echo "GitHub event data: ${{ toJSON(github.event) }}"
-
         # github.ref: For workflows triggered by pull_request, this is the pull request merge branch.
         #             For workflows triggered by release, this is the release tag created.
         # https://docs.github.com/en/actions/reference/contexts-reference
         echo "Event received: '${{ github.event_name }}' (with a reference '${{ github.ref }}')"
 
         if [ "${{ github.event_name }}" = "release" ]; then
-          export COMMIT_TAG="${{ github.ref }}"
+          echo "GitHub event data: ${{ toJSON(github.event.release) }}"
+          export COMMIT_TAG="${{ github.event.release.tag_name }}"
           export COMMIT_TAG=${COMMIT_TAG//v/}
         else
           if [ -z ${IMAGE_TAG} ]; then
