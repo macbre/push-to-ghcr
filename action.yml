@@ -80,7 +80,7 @@ runs:
         echo "Event received: '${{ github.event_name }}' (with a reference '${{ github.ref }}')"
 
         if [ "${{ github.event_name }}" = "release" ]; then
-          echo "GitHub event data: ${{ toJSON(github.event.release) }}"
+          # echo "GitHub event data: ${{ toJSON(github.event.release) }}"
           export COMMIT_TAG="${{ github.event.release.tag_name }}"
           export COMMIT_TAG=${COMMIT_TAG//v/}
         else
