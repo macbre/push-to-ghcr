@@ -77,10 +77,9 @@ runs:
         # github.ref: For workflows triggered by pull_request, this is the pull request merge branch.
         #             For workflows triggered by release, this is the release tag created.
         # https://docs.github.com/en/actions/reference/contexts-reference
-        echo "Event received: '${{ github.event_name }}' (with a reference '${{ github.ref }}')"
+        echo "Event received: '${{ github.event_name }}' (with a reference '${{ github.ref }}' / tag name '${{ github.event.release.tag_name }}')"
 
         if [ "${{ github.event_name }}" = "release" ]; then
-          # echo "GitHub event data: ${{ toJSON(github.event.release) }}"
           export COMMIT_TAG="${{ github.event.release.tag_name }}"
           export COMMIT_TAG=${COMMIT_TAG//v/}
         else
