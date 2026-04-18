@@ -153,7 +153,9 @@ runs:
 
         for TAG in "${IMAGE_TAGS[@]}"; do
           GHCR_TAG_ARGS+=(--tag "${{ inputs.repository }}/${IMAGE_NAME}:${TAG}")
-          DOCKER_IO_TAG_ARGS+=(--tag "docker.io/${IMAGE_NAME}:${TAG}")
+          if [ -n "${DOCKER_IO_TOKEN}" ]; then
+            DOCKER_IO_TAG_ARGS+=(--tag "docker.io/${IMAGE_NAME}:${TAG}")
+          fi
         done
 
         # Common build arguments and labels used by both docker build and docker buildx build
@@ -242,9 +244,13 @@ runs:
               export DOCKER_IO_USER="${{ github.actor }}"
             fi
 
+            echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${DOCKER_IO_USER}" --password-stdin
+
+            echo "::group::Pushing the Docker image to docker.io/${IMAGE_NAME} ..."
             for TAG in "${IMAGE_TAGS[@]}"; do
               >&0 docker push docker.io/${IMAGE_NAME}:${TAG} && echo "Pushed docker.io/${IMAGE_NAME}:${TAG}"
             done
+            echo "::endgroup::"
 
             echo "::endgroup::"
           fi
