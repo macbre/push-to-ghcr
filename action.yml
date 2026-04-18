@@ -111,7 +111,7 @@ runs:
             if [ "${EXISTING_TAG}" = "$1" ]; then
               return
             fi
-          done
+          fi
 
           IMAGE_TAGS+=("$1")
         }
