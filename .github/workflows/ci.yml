@@ -8,6 +8,9 @@ on:
 # https://docs.github.com/en/actions/using-jobs/assigning-permissions-to-jobs#defining-access-for-the-github_token-scopes
 permissions: write-all
 
+env:
+  IMAGE_NAME: ${{ github.repository_owner }}/push-to-ghcr
+
 jobs:
   ghcr:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on 
@@ -18,20 +21,20 @@ jobs:
       - name: Run an action
         uses: ./
         with:
-          image_name: "MaCBre/Push-to-ghcr" # make sure this is lowercased by the action
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_tag: foo_tag
 
       - name: Make sure that an image has been built and tagged properly
         env:
-          IMAGE: ghcr.io/${{ github.repository }}
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}
         run: |
           docker images | grep ${IMAGE}
           docker images | grep foo_tag
 
       - name: Make sure that an image has been pushed and is properly labelled
         env:
-          IMAGE: ghcr.io/${{ github.repository }}
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}
         run: |
           set -x
           docker rmi ${IMAGE}:foo_tag
@@ -47,20 +50,115 @@ jobs:
       - name: Run an action
         uses: ./
         with:
-          image_name: "MaCBre/Push-to-ghcr" # make sure this is lowercased by the action
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_tag: foo_tag
-          # use this input to pass extra arguments to 'docker build', e.g. use multiple tags for an image
-          extra_args: '--tag foo.net/app:latest --annotation "foo=bar"'
+          # use this input to pass extra arguments to 'docker build'
+          extra_args: '--label extra-args-test=foo'
 
       - name: Make sure that an image has been built and tagged properly
         env:
-          IMAGE: ghcr.io/${{ github.repository }}
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}
         run: |
           set -x
           docker images | grep ${IMAGE}
           docker images | grep foo_tag
-          docker images | grep 'foo.net/app'
+          docker image inspect ${IMAGE}:foo_tag | jq '.[].Config.Labels' | tee /dev/fd/2 | grep '"extra-args-test": "foo"'
+
+  ghcr_and_docker_io_with_multiple_image_tags:
+    runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: "${{ env.IMAGE_NAME }}-multi"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: 'multi_tag_primary, multi_tag_latest'
+          docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
+
+      - name: Make sure that all image tags have been built and pushed
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}-multi
+        run: |
+          set -x
+          docker images | grep ghcr.io/${IMAGE}
+          docker images | grep multi_tag_primary
+          docker images | grep multi_tag_latest
+          docker image inspect ghcr.io/${IMAGE}:multi_tag_primary
+          docker image inspect ghcr.io/${IMAGE}:multi_tag_latest
+          docker image inspect docker.io/${IMAGE}:multi_tag_primary
+          docker image inspect docker.io/${IMAGE}:multi_tag_latest
+
+          docker rmi ghcr.io/${IMAGE}:multi_tag_primary
+          docker rmi ghcr.io/${IMAGE}:multi_tag_latest
+          docker rmi docker.io/${IMAGE}:multi_tag_primary
+          docker rmi docker.io/${IMAGE}:multi_tag_latest
+
+          docker pull ghcr.io/${IMAGE}:multi_tag_primary
+          docker pull ghcr.io/${IMAGE}:multi_tag_latest
+          docker pull docker.io/${IMAGE}:multi_tag_primary
+          docker pull docker.io/${IMAGE}:multi_tag_latest
+
+          docker image inspect ghcr.io/${IMAGE}:multi_tag_primary | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker image inspect ghcr.io/${IMAGE}:multi_tag_latest | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker image inspect docker.io/${IMAGE}:multi_tag_primary | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+          docker image inspect docker.io/${IMAGE}:multi_tag_latest | jq '.[].Config.Labels' | tee /dev/fd/2 | grep "${GITHUB_SHA}"
+
+  ghcr_with_multiple_image_tags_newline:
+    runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: "${{ env.IMAGE_NAME }}-multi-newline"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: |
+            multi_tag_newline_primary
+            multi_tag_newline_latest
+
+      - name: Make sure that all image tags have been built
+        env:
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}-multi-newline
+        run: |
+          docker image inspect ${IMAGE}:multi_tag_newline_primary
+          docker image inspect ${IMAGE}:multi_tag_newline_latest
+
+  ghcr_with_uppercase_image_name:
+    runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set mixed-case image name
+        run: |
+          MIXED_OWNER=$(echo "${{ github.repository_owner }}" | awk '{
+            out = ""
+            for (i = 1; i <= length($0); i++) {
+              c = substr($0, i, 1)
+              out = out ((i % 2) ? toupper(c) : tolower(c))
+            }
+            print out
+          }')
+          echo "IMAGE_NAME_MIXED=${MIXED_OWNER}/Push-to-ghcr" >> "${GITHUB_ENV}"
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: ${{ env.IMAGE_NAME_MIXED }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: uppercase_image_name
+
+      - name: Make sure that the image name has been lowercased
+        env:
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}
+        run: |
+          docker image inspect ${IMAGE}:uppercase_image_name
 
   ghcr_with_dockerfile_in_subdir:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
@@ -93,7 +191,7 @@ jobs:
       - name: Run an action with multi-platform build
         uses: ./
         with:
-          image_name: "macbre/push-to-ghcr"
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_tag: foo_tag_multiplatform
           platforms: "linux/amd64,linux/arm64"
@@ -115,19 +213,19 @@ jobs:
       - name: Run an action
         uses: ./
         with:
-          image_name: ${{ github.repository }}
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
 
       - name: Make sure that an image has been built
         env:
-          IMAGE: ${{ github.repository }}
+          IMAGE: ${{ env.IMAGE_NAME }}
         run: |
           docker images | grep ${IMAGE}
 
       - name: Make sure that an image has been pushed and is properly labelled
         env:
-          IMAGE: ${{ github.repository }}
+          IMAGE: ${{ env.IMAGE_NAME }}
         run: |
           set -x
           docker rmi ghcr.io/${IMAGE}

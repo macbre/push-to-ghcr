@@ -39,7 +39,7 @@ inputs:
     required: false
   
   image_tag:
-    description: Image tag, e.g. latest. Will overwrite the tag latest tag on a push, and have no effect on a release.
+    description: Image tag or tags, e.g. latest or "1.0.0,latest". Only tag names are accepted. Will overwrite the latest tag on a push, and have no effect on a release.
     required: false
 
   # https://docs.docker.com/build/guide/build-args/
@@ -49,7 +49,7 @@ inputs:
     default: "FOO=bar"
 
   extra_args:
-    description: Additional arguments to be passed to "docker build", you can pass custom tags here for instance.
+    description: Additional arguments to be passed to "docker build".
     required: false
     default: ""
 
@@ -96,25 +96,65 @@ runs:
         # https://docs.github.com/en/actions/reference/contexts-reference
         echo "Event received: '${{ github.event_name }}' (with a reference '${{ github.ref }}' / tag name '${{ github.event.release.tag_name }}')"
 
+        IMAGE_TAGS=()
+        add_image_tag() {
+          if [ -z "$1" ]; then
+            return
+          fi
+
+          if [[ "$1" == *"/"* || "$1" == *":"* ]]; then
+            echo "::error::The image_tag input accepts tag names only, not full image references: '$1'"
+            exit 1
+          fi
+
+          for EXISTING_TAG in "${IMAGE_TAGS[@]}"; do
+            if [ "${EXISTING_TAG}" = "$1" ]; then
+              return
+            fi
+          done
+
+          IMAGE_TAGS+=("$1")
+        }
+
         if [ "${{ github.event_name }}" = "release" ]; then
           export COMMIT_TAG="${{ github.event.release.tag_name }}"
           export COMMIT_TAG=${COMMIT_TAG//v/}
+          add_image_tag "${COMMIT_TAG}"
         else
-          if [ -z ${IMAGE_TAG} ]; then
+          if [ -z "${IMAGE_TAG}" ]; then
             export COMMIT_TAG=latest
+            add_image_tag "${COMMIT_TAG}"
           else
-            export COMMIT_TAG=${IMAGE_TAG}
+            export IMAGE_TAG_LIST=${IMAGE_TAG//,/ }
+
+            for TAG in ${IMAGE_TAG_LIST}; do
+              add_image_tag "${TAG}"
+            done
+
+            if [ ${#IMAGE_TAGS[@]} -eq 0 ]; then
+              echo "::error::The image_tag input did not contain any tags."
+              exit 1
+            fi
+
+            export COMMIT_TAG=${IMAGE_TAGS[0]}
           fi
         fi
 
         # lowercase the image name, see https://github.com/macbre/push-to-ghcr/issues/12
         export IMAGE_NAME=$(echo ${IMAGE_NAME} | tr '[:upper:]' '[:lower:]')
 
-        echo "Tagging with ${COMMIT_TAG}"
+        echo "Tagging with ${IMAGE_TAGS[*]}"
         echo "::endgroup::"
 
         export BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         export GITHUB_URL=https://github.com/${{ github.repository }}
+        GHCR_TAG_ARGS=()
+        DOCKER_IO_TAG_ARGS=()
+
+        for TAG in "${IMAGE_TAGS[@]}"; do
+          GHCR_TAG_ARGS+=(--tag "${{ inputs.repository }}/${IMAGE_NAME}:${TAG}")
+          DOCKER_IO_TAG_ARGS+=(--tag "docker.io/${IMAGE_NAME}:${TAG}")
+        done
 
         # Common build arguments and labels used by both docker build and docker buildx build
         COMMON_ARGS=(
@@ -123,6 +163,8 @@ runs:
           --build-arg BUILD_DATE=${BUILD_DATE}
           --build-arg GITHUB_SHA=${GITHUB_SHA}
           --build-arg ${{ inputs.build_arg }}
+          ${GHCR_TAG_ARGS[@]}
+          ${DOCKER_IO_TAG_ARGS[@]}
           ${{ inputs.extra_args }}
           --label org.label-schema.build-date=${BUILD_DATE}
           --label org.label-schema.vcs-url=${GITHUB_URL}
@@ -185,11 +227,12 @@ runs:
 
           echo "Env variables:"
           docker image inspect ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} | jq '.[].Config.Env'
-
           echo "::endgroup::"
 
           echo "::group::Pushing the Docker image to ${{ inputs.repository }} ..."
-          >&0 docker push ${{ inputs.repository }}/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
+          for TAG in "${IMAGE_TAGS[@]}"; do
+            >&0 docker push ${{ inputs.repository }}/${IMAGE_NAME}:${TAG} && echo "Pushed ${{ inputs.repository }}/${IMAGE_NAME}:${TAG}"
+          done
           echo "::endgroup::"
 
           if [ -z "${DOCKER_IO_TOKEN}" ]; then
@@ -199,10 +242,9 @@ runs:
               export DOCKER_IO_USER="${{ github.actor }}"
             fi
 
-            echo "::group::Pushing the Docker image to docker.io as ${DOCKER_IO_USER}..."
-            echo "${DOCKER_IO_TOKEN}" | docker login docker.io -u "${DOCKER_IO_USER}" --password-stdin
-
-            >&0 docker push docker.io/${IMAGE_NAME}:${COMMIT_TAG} && echo "Pushed"
+            for TAG in "${IMAGE_TAGS[@]}"; do
+              >&0 docker push docker.io/${IMAGE_NAME}:${TAG} && echo "Pushed docker.io/${IMAGE_NAME}:${TAG}"
+            done
 
             echo "::endgroup::"
           fi
