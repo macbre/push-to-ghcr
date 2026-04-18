@@ -105,6 +105,28 @@ Provide the `platforms` input parameter, e.g.:
           platforms: "linux/amd64,linux/arm64,linux/arm/v7"
 ```
 
+`buildx` / `qemu` should give you the list of available platforms:
+
+```yaml
+  {
+    "supported": [
+      "linux/amd64",
+      "linux/amd64/v2",
+      "linux/amd64/v3",
+      "linux/arm64",
+      "linux/riscv64",
+      "linux/ppc64le",
+      "linux/s390x",
+      "linux/386",
+      "linux/mips64le",
+      "linux/mips64",
+      "linux/loong64",
+      "linux/arm/v7",
+      "linux/arm/v6"
+    ]
+  }
+```
+
 ## Labels and build args
 
 The image that is pushed is labelled with `org.label-schema` [and `org.opencontainers` schema](https://github.com/opencontainers/image-spec/blob/master/annotations.md#pre-defined-annotation-keys). For instance:
