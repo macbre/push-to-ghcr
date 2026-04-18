@@ -129,6 +129,37 @@ jobs:
           docker image inspect ${IMAGE}:multi_tag_newline_primary
           docker image inspect ${IMAGE}:multi_tag_newline_latest
 
+  ghcr_with_uppercase_image_name:
+    runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set mixed-case image name
+        run: |
+          MIXED_OWNER=$(echo "${{ github.repository_owner }}" | awk '{
+            out = ""
+            for (i = 1; i <= length($0); i++) {
+              c = substr($0, i, 1)
+              out = out ((i % 2) ? toupper(c) : tolower(c))
+            }
+            print out
+          }')
+          echo "IMAGE_NAME_MIXED=${MIXED_OWNER}/Push-to-ghcr" >> "${GITHUB_ENV}"
+
+      - name: Run an action
+        uses: ./
+        with:
+          image_name: ${{ env.IMAGE_NAME_MIXED }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: uppercase_image_name
+
+      - name: Make sure that the image name has been lowercased
+        env:
+          IMAGE: ghcr.io/${{ env.IMAGE_NAME }}
+        run: |
+          docker image inspect ${IMAGE}:uppercase_image_name
+
   ghcr_with_dockerfile_in_subdir:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
