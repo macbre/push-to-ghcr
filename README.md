@@ -9,6 +9,8 @@ This action simplifies pushes of container images to [the GitHub Containers Regi
 
 Additionally, this action will also **automatically lowercase the repository name** to be able to push an image to the repository.
 
+This action also **supports [multi-tagging](https://github.com/macbre/push-to-ghcr/issues/50) of image and [multi-platform builds](https://docs.docker.com/build/building/multi-platform/)**.
+
 ### Private containers
 
 Images built for private repositories will be published as private containers to ghcr.io. Please refer to [GitHub's documentation on how to set up access](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry) to them via [personal access token (also known as PAT)](https://docs.github.com/en/github/authenticating-to-github/keeping-your-account-and-data-secure/creating-a-personal-access-token). PAT can be [created in "Developer settings" panel](https://github.com/settings/tokens).
@@ -63,6 +65,7 @@ However, you can use `dockerfile` input to **specify a different path** (relativ
 * `docker_io_user`: A username to use when pushing an image to `docker.io` (defaults to the `github.actor`)
 * `docker_io_token`: Your `docker.io` token created via https://hub.docker.com/settings/security
 * `image_tag`: Image tag or tags, e.g. `latest` or `1.0.0,latest`. Will overwrite the latest tag on a push, and have no effect on a release. Only tag names are accepted, not full image references.
+* `platforms`: image will be built (and pushed) for different operating system or CPU architecture combinations (e.g. `linux/amd64,linux/arm64,linux/arm/v7`)
 * `extra_args`: additional arguments to pass to `docker build`. Tags added with `extra_args` are local build tags; use `image_tag` to publish multiple tags.
 
 ### Publishing multiple tags
@@ -87,6 +90,19 @@ For non-release events, `image_tag` can be a single tag, a comma-separated list,
           image_tag: |
             1.0.0
             latest
+```
+
+### [Multi-platform builds]([https://docs.docker.com/build/building/multi-platform/](https://docs.docker.com/build/building/multi-platform/#multiple-native-nodes))
+
+Provide the `platforms` input parameter, e.g.:
+
+```yaml
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          platforms: "linux/amd64,linux/arm64,linux/arm/v7"
 ```
 
 ## Labels and build args
