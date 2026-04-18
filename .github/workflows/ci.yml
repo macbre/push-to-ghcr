@@ -191,7 +191,7 @@ jobs:
       - name: Run an action with multi-platform build
         uses: ./
         with:
-          image_name: "macbre/push-to-ghcr"
+          image_name: ${{ env.IMAGE_NAME }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           image_tag: foo_tag_multiplatform
           platforms: "linux/amd64,linux/arm64"
