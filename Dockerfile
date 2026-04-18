@@ -1,7 +1,8 @@
 # This file is used by CI pipeline when testing this action
 FROM alpine:latest
 
-RUN apk add --no-cache curl
+RUN apk update \
+  && apk add curl
 
 # these two are passed as build args
 ARG BUILD_DATE
