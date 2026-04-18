@@ -153,7 +153,9 @@ runs:
 
         for TAG in "${IMAGE_TAGS[@]}"; do
           GHCR_TAG_ARGS+=(--tag "${{ inputs.repository }}/${IMAGE_NAME}:${TAG}")
-          DOCKER_IO_TAG_ARGS+=(--tag "docker.io/${IMAGE_NAME}:${TAG}")
+          if [ -n "${DOCKER_IO_TOKEN}" ]; then
+            DOCKER_IO_TAG_ARGS+=(--tag "docker.io/${IMAGE_NAME}:${TAG}")
+          done
         done
 
         # Common build arguments and labels used by both docker build and docker buildx build
