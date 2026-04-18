@@ -64,8 +64,32 @@ However, you can use `dockerfile` input to **specify a different path** (relativ
 * `repository` (defaults to `ghcr.io`): containers repository to push an image to
 * `docker_io_user`: A username to use when pushing an image to `docker.io` (defaults to the `github.actor`)
 * `docker_io_token`: Your `docker.io` token created via https://hub.docker.com/settings/security
-* `image_tag`: Image tag, e.g. `latest`. Will overwrite the tag latest tag on a push, and have no effect on a release
-* `extra_args`: additinal arguments to pass to `docker build`, you can for instance pass here additional tags to be used for an image, e.g. (`extra_args: "--tag foo:latest --tag app:bar"`)
+* `image_tag`: Image tag or tags, e.g. `latest` or `1.0.0,latest`. Will overwrite the latest tag on a push, and have no effect on a release. Only tag names are accepted, not full image references.
+* `extra_args`: additional arguments to pass to `docker build`. Tags added with `extra_args` are local build tags; use `image_tag` to publish multiple tags.
+
+### Publishing multiple tags
+
+For non-release events, `image_tag` can be a single tag, a comma-separated list, or a newline-separated list:
+
+```yaml
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: 1.0.0,latest
+```
+
+```yaml
+      - name: Build and publish a Docker image for ${{ github.repository }}
+        uses: macbre/push-to-ghcr@master
+        with:
+          image_name: ${{ github.repository }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          image_tag: |
+            1.0.0
+            latest
+```
 
 ## Labels and build args
 
