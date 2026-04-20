@@ -70,7 +70,7 @@ runs:
     # https://docs.docker.com/build/ci/github-actions/multi-platform/
     - name: Set up Docker Buildx
       if: ${{ inputs.platforms != '' }}
-      uses: docker/setup-buildx-action@v3
+      uses: docker/setup-buildx-action@v4
 
     # https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry#authenticating-to-the-container-registry
     - name: Log in to the Container registry
