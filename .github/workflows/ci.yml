@@ -69,7 +69,7 @@ jobs:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run an action
         uses: ./
@@ -111,7 +111,7 @@ jobs:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run an action
         uses: ./
@@ -133,7 +133,7 @@ jobs:
     runs-on: "ubuntu-latest"  # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Set mixed-case image name
         run: |
