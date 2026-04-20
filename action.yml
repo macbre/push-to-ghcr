@@ -65,7 +65,7 @@ runs:
     # https://docs.docker.com/build/drivers/docker-container/#qemu
     - name: Set up QEMU for multi-platform builds
       if: ${{ inputs.platforms != '' }}
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@v4
 
     # https://docs.docker.com/build/ci/github-actions/multi-platform/
     - name: Set up Docker Buildx
